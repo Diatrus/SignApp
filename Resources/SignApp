@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# SignApp. Used to correctly and automatically create deb files of tvOS or iOS apps that can be run from /Applications.
+
+#Check dependancies
+if ! type dpkg &>/dev/null; then
+	echo "Please install dpkg."
+fi
+if ! type ldid2 &>/dev/null; then
+	echo "Please install ldid2."
+fi
+if [ ! -d "$HOME/Documents/SignApp" ]; then
+	mkdir "$HOME/Documents/SignApp"
+fi	
+
+#Actual script
+FILENAME="$1"
+if [ -z "$1" ]; then
+	echo "Usage: SignApp [IPA]"
+else
+	if [ ! -f "$FILENAME" ]; then
+		echo "File not found!"
+	else
+		cp "$FILENAME" "$HOME/Documents/SignApp/$FILENAME"
+		cd "$HOME/Documents/SignApp"
+		find . -type d -exec rm -rf '{}' \;  2> /dev/null
+		echo "Extracting IPA"
+		unzip -qq "$FILENAME"
+		rm -rf __MACOSX
+		cd Payload
+		APPDIR=$(find . -type d -name "*.app") 
+		cd ..
+		chmod -R +x Payload
+		mv Payload/"$APPDIR" "$APPDIR"
+		rm -rf Payload
+		rm -rf "$APPDIR"/_CodeSignature &>/dev/null
+		rm -f "$APPDIR"/embedded.mobileprovision &>/dev/null
+		find . -name ".DS_Store" -depth -exec rm {} \;
+		echo "Getting app version..."
+		VERSION=$(/usr/libexec/plistbuddy -c 'print CFBundleShortVersionString' ${APPDIR}/Info.plist)
+		BUILD=$(/usr/libexec/plistbuddy -c 'print CFBundleVersion' ${APPDIR}/Info.plist)
+		FIRMWARE=$(/usr/libexec/plistbuddy -c 'print MinimumOSVersion' ${APPDIR}/Info.plist)
+		BUNDLEID=$(/usr/libexec/plistbuddy -c 'print CFBundleIdentifier' ${APPDIR}/Info.plist)
+		NAME=$(/usr/libexec/plistbuddy -c 'print CFBundleName' ${APPDIR}/Info.plist)
+		PLATFORM=$(/usr/libexec/plistbuddy -c 'print DTPlatformName' ${APPDIR}/Info.plist)
+		BUNDLENAME=$(/usr/libexec/plistbuddy -c 'print CFBundleDisplayName' ${APPDIR}/Info.plist)
+		echo "$VERSION"-"$BUILD"
+		echo "Downloading entitlements..."
+		curl --silent https://raw.githubusercontent.com/Diatrus/SignApp/master/Resources/entitlements.xml > entitlements.xml
+		echo "Adding entitlements..."
+		find "$APPDIR" -perm +111 -type f -not -name "*.html" -not -name "*.css" -not -name "*.js" -exec ldid2 -Sentitlements.xml {} &>/dev/null \;
+		rm -f entitlements.xml
+		echo "Packaging ipa..."
+		mkdir Payload
+		mv "$APPDIR" Payload/"$APPDIR"
+		zip -qq Payload
+		mv Payload.zip "$BUNDLEID".ipa
+	fi	
+fi

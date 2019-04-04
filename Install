@@ -1,0 +1,26 @@
+#!/bin/bash
+#SignApp Install script v1.5
+if ! type dpkg &>/dev/null; then 
+	if type brew &>/dev/null; then
+		echo "Installing dpkg with Homebrew..."
+		brew install dpkg
+	elif type port &>/dev/null; then
+		echo "Installing dpkg with MacPorts..."
+		sudo port install dpkg
+	else
+		echo "Installing Homebrew..."
+		/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+		echo "Installing dpkg with Homebrew..." 
+		brew install dpkg
+	fi
+fi	
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+cd "$DIR"
+curl --silent -LJO https://raw.githubusercontent.com/Diatrus/SignApp/master/Resources/SignApp > SignApp
+curl --silent -LJO https://raw.githubusercontent.com/Diatrus/SignApp/master/Resources/ldid2 > ldid2
+sudo mv "SignApp" "/usr/bin/SignApp" 
+sudo mv "ldid2" "/usr/bin/ldid2"
+sudo chmod 0777 /usr/bin/SignApp
+sudo chmod 0777 /usr/bin/ldid2
+echo "Success! SignApp can now be run anywhere!"
+echo "Run this script again anytime to update SignApp."
