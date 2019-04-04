@@ -53,7 +53,9 @@ else
 		echo "Packaging ipa..."
 		mkdir Payload
 		mv "$APPDIR" Payload/"$APPDIR"
-		zip -qq Payload
+		zip -qq Payload.zip Payload
 		mv Payload.zip "$BUNDLEID".ipa
+		rm -rf Payload
+		rm -f "$FILENAME"
 	fi	
 fi
