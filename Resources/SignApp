@@ -45,7 +45,7 @@ else
 		echo "Packaging ipa..."
 		cd ..
 		rm -f "$FILENAME"
-		zip -qq Payload.zip Payload
+		zip -rqq Payload.zip Payload
 		mv Payload.zip "$FILENAME"
 		rm -rf Payload
 	fi	
