@@ -29,21 +29,13 @@ else
 		rm -rf __MACOSX
 		cd Payload
 		APPDIR=$(find . -type d -name "*.app") 
-		cd ..
-		chmod -R +x Payload
-		mv Payload/"$APPDIR" "$APPDIR"
-		rm -rf Payload
+		chmod -R +x ../Payload
 		rm -rf "$APPDIR"/_CodeSignature &>/dev/null
 		rm -f "$APPDIR"/embedded.mobileprovision &>/dev/null
 		find . -name ".DS_Store" -depth -exec rm {} \;
 		echo "Getting app version..."
 		VERSION=$(/usr/libexec/plistbuddy -c 'print CFBundleShortVersionString' ${APPDIR}/Info.plist)
 		BUILD=$(/usr/libexec/plistbuddy -c 'print CFBundleVersion' ${APPDIR}/Info.plist)
-		FIRMWARE=$(/usr/libexec/plistbuddy -c 'print MinimumOSVersion' ${APPDIR}/Info.plist)
-		BUNDLEID=$(/usr/libexec/plistbuddy -c 'print CFBundleIdentifier' ${APPDIR}/Info.plist)
-		NAME=$(/usr/libexec/plistbuddy -c 'print CFBundleName' ${APPDIR}/Info.plist)
-		PLATFORM=$(/usr/libexec/plistbuddy -c 'print DTPlatformName' ${APPDIR}/Info.plist)
-		BUNDLENAME=$(/usr/libexec/plistbuddy -c 'print CFBundleDisplayName' ${APPDIR}/Info.plist)
 		echo "$VERSION"-"$BUILD"
 		echo "Downloading entitlements..."
 		curl --silent https://raw.githubusercontent.com/Diatrus/SignApp/master/Resources/entitlements.xml > entitlements.xml
@@ -51,9 +43,8 @@ else
 		find "$APPDIR" -perm +111 -type f -not -name "*.html" -not -name "*.css" -not -name "*.js" -exec ldid2 -Sentitlements.xml {} &>/dev/null \;
 		rm -f entitlements.xml
 		echo "Packaging ipa..."
+		cd ..
 		rm -f "$FILENAME"
-		mkdir Payload
-		mv "$APPDIR" Payload/"$APPDIR"
 		zip -qq Payload.zip Payload
 		mv Payload.zip "$FILENAME"
 		rm -rf Payload
