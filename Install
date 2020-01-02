@@ -3,10 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 cd "$DIR"
 curl --silent -LJO https://raw.githubusercontent.com/Diatrus/SignApp/master/Resources/SignApp > SignApp
-curl --silent -LJO https://raw.githubusercontent.com/Diatrus/SignApp/master/Resources/ldid2 > ldid2
 sudo mv "SignApp" "/usr/local/bin/SignApp" 
-sudo mv "ldid2" "/usr/local/bin/ldid2"
-sudo chmod 0777 /usr/local/bin/SignApp
-sudo chmod 0777 /usr/local/bin/ldid2
+sudo chmod 0755 /usr/local/bin/SignApp
 echo "Success! SignApp can now be run anywhere!"
 echo "Run this script again anytime to update SignApp."
