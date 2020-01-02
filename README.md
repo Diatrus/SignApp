@@ -5,8 +5,7 @@ SignApp is a simple, minimal footprint script that will extract an IPA and repac
 SignApp extracts an IPA, takes needed info from the info.plist to create a specialized control file, adds entitlements to the main binary and frameworks (so the app can be ran as root), then repacks it back into an ipa
 
 ## Instructions
-1. Download the latest Installer from the releases page.
-2. Simply double click the Installer, type your password when prompted, and let the script install SignApp and its dependencies.
+Run '''/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Diatrus/SignApp/master/Install)"''' in terminal.
 3. Run SignApp [/path/to/ipa] to repack your IPA.
 
 ## Installer Info
