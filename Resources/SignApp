@@ -10,19 +10,32 @@ if [ ! -d "$HOME/Documents/SignApp" ]; then
 	mkdir "$HOME/Documents/SignApp"
 fi	
 
+realpath() {
+  OURPWD=$PWD
+  cd "$(dirname "$1")"
+  LINK=$(readlink "$(basename "$1")")
+  while [ "$LINK" ]; do
+    cd "$(dirname "$LINK")"
+    LINK=$(readlink "$(basename "$1")")
+  done
+  REALPATH="$PWD/$(basename "$1")"
+  cd "$OURPWD"
+  echo "$REALPATH"
+}
+
 #Actual script
-FILENAME="$1"
+FILENAME=$(realpath "$1")
+echo "$FILENAME"
 if [ -z "$1" ]; then
 	echo "Usage: SignApp [IPA]"
 else
 	if [ ! -f "$FILENAME" ]; then
 		echo "File not found!"
 	else
-		cp "$FILENAME" "$HOME/Documents/SignApp/$FILENAME"
 		cd "$HOME/Documents/SignApp"
 		find . -type d -exec rm -rf '{}' \;  2> /dev/null
 		echo "Extracting IPA"
-		unzip -qq "$FILENAME"
+		unzip -qq "$FILENAME" -d .
 		rm -rf __MACOSX
 		cd Payload
 		APPDIR=$(find . -type d -name "*.app") 
@@ -30,10 +43,11 @@ else
 		rm -rf "$APPDIR"/_CodeSignature &>/dev/null
 		rm -f "$APPDIR"/embedded.mobileprovision &>/dev/null
 		find . -name ".DS_Store" -depth -exec rm {} \;
-		echo "Getting app version..."
+		echo "Getting app name and version..."CFBundleDisplayName
+                NAME=$(/usr/libexec/plistbuddy -c 'print CFBundleDisplayName' ${APPDIR}/Info.plist)
 		VERSION=$(/usr/libexec/plistbuddy -c 'print CFBundleShortVersionString' ${APPDIR}/Info.plist)
 		BUILD=$(/usr/libexec/plistbuddy -c 'print CFBundleVersion' ${APPDIR}/Info.plist)
-		echo "$VERSION"-"$BUILD"
+		echo "$NAME $VERSION"-"$BUILD"
 		echo "Downloading entitlements..."
 		curl --silent https://raw.githubusercontent.com/Diatrus/SignApp/master/Resources/entitlements.xml > entitlements.xml
 		echo "Adding entitlements..."
@@ -41,9 +55,8 @@ else
 		rm -f entitlements.xml
 		echo "Packaging ipa..."
 		cd ..
-		rm -f "$FILENAME"
 		zip -rqq Payload.zip Payload
-		mv Payload.zip "$FILENAME"
+		mv Payload.zip "$NAME"_"$VERSION"-"$BUILD".ipa
 		rm -rf Payload
 	fi	
 fi
